@@ -1,1 +1,42 @@
-# clothes-app
+# Atelier
+
+Local Windows desktop app for cataloguing clothes (with in-app background removal) and planning outfits on a free-form moodboard canvas.
+
+## Features
+
+- **Wardrobe** — add clothing photos, optional remove.bg cutouts, category / colors / brand / notes / tags
+- **Browse & filter** — search plus category, color, and brand filters
+- **Outfit canvas** — drag, resize, rotate, and layer pieces; save with occasion + vibe
+- **Export** — save the moodboard as a PNG
+- **Local data** — SQLite + images under your Windows user profile (`%APPDATA%/atelier/atelier-data`)
+
+## Requirements
+
+- Node.js 20+
+- Windows (primary target)
+- A [remove.bg](https://www.remove.bg/api) API key for background removal
+
+## Develop
+
+```bash
+npm install
+npm run dev
+```
+
+## Build (Windows installer)
+
+```bash
+npm run dist:win
+```
+
+Installer output lands in `release/`.
+
+## First run
+
+1. Open **Settings** and paste your remove.bg API key.
+2. Go to **Wardrobe → Add clothing**, choose a photo, and save.
+3. Open **Outfits → Plan outfit**, place pieces on the canvas, set occasion/vibe, and save or export.
+
+## Stack
+
+Electron · React · TypeScript · SQLite (better-sqlite3) · Konva · remove.bg API
