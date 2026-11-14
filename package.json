@@ -9,12 +9,12 @@
     "node": ">=20"
   },
   "scripts": {
-    "dev": "node node_modules/electron/install.js && electron-vite dev",
-    "build": "node node_modules/electron/install.js && electron-vite build",
-    "preview": "node node_modules/electron/install.js && electron-vite preview",
+    "dev": "node scripts/ensure-electron.cjs && electron-vite dev",
+    "build": "node scripts/ensure-electron.cjs && electron-vite build",
+    "preview": "node scripts/ensure-electron.cjs && electron-vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
     "dist:win": "npm run build && electron-builder --win",
-    "electron:download": "node node_modules/electron/install.js"
+    "electron:download": "node scripts/ensure-electron.cjs"
   },
 
   "dependencies": {

@@ -27,12 +27,15 @@ npm install
 npm run dev
 ```
 
-The first `npm run dev` downloads the Electron binary (can take a minute). You should see network activity before the app window opens.
+The first `npm run dev` downloads the Electron binary (can take a minute). You should see `Electron binary missing — downloading…` once.
 
-If Electron still fails to download, run this once and paste any error output:
+If that fails, run these diagnostics and paste the output:
 
 ```bat
-node node_modules\electron\install.js
+echo ELECTRON_SKIP_BINARY_DOWNLOAD=%ELECTRON_SKIP_BINARY_DOWNLOAD%
+dir node_modules\electron
+dir node_modules\electron\dist
+node scripts\ensure-electron.cjs
 ```
 
 ## Build (Windows installer)
