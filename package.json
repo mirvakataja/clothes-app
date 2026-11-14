@@ -9,9 +9,9 @@
     "node": ">=20"
   },
   "scripts": {
-    "dev": "electron-vite dev",
-    "build": "electron-vite build",
-    "preview": "electron-vite preview",
+    "dev": "node node_modules/electron/install.js && electron-vite dev",
+    "build": "node node_modules/electron/install.js && electron-vite build",
+    "preview": "node node_modules/electron/install.js && electron-vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
     "dist:win": "npm run build && electron-builder --win",
     "electron:download": "node node_modules/electron/install.js"

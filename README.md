@@ -24,19 +24,15 @@ From the project folder that contains `package.json`:
 
 ```bat
 npm install
-npm run electron:download
 npm run dev
 ```
 
-`electron:download` fetches the Electron binary. Newer npm versions may skip that automatically; if `npm run dev` says **Electron uninstall**, run that command once and try again.
+The first `npm run dev` downloads the Electron binary (can take a minute). You should see network activity before the app window opens.
 
-If npm asks you to approve install scripts:
+If Electron still fails to download, run this once and paste any error output:
 
 ```bat
-npm install-scripts approve electron
-npm install-scripts approve esbuild
-npm run electron:download
-npm run dev
+node node_modules\electron\install.js
 ```
 
 ## Build (Windows installer)
