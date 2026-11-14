@@ -12,7 +12,7 @@ Local Windows desktop app for cataloguing clothes (with in-app background remova
 
 ## Requirements
 
-- [Node.js 20 or 22 LTS](https://nodejs.org/) (avoid odd/bleeding-edge majors if possible)
+- **[Node.js 22 LTS](https://nodejs.org/)** on Windows (recommended). Node 26 can fail to unpack Electron.
 - Windows (primary target)
 - A [remove.bg](https://www.remove.bg/api) API key for background removal
 
@@ -27,15 +27,31 @@ npm install
 npm run dev
 ```
 
-The first `npm run dev` downloads the Electron binary (can take a minute). You should see `Electron binary missing — downloading…` once.
+The first run downloads the Electron binary (can take a minute).
 
-If that fails, run these diagnostics and paste the output:
+### If you see `Error: Electron uninstall`
+
+You are likely on Node 26. Either:
+
+**A. Switch to Node 22 LTS (simplest)**  
+Install from https://nodejs.org/, open a new terminal, then:
 
 ```bat
-echo ELECTRON_SKIP_BINARY_DOWNLOAD=%ELECTRON_SKIP_BINARY_DOWNLOAD%
-dir node_modules\electron
-dir node_modules\electron\dist
-node scripts\ensure-electron.cjs
+rmdir /s /q node_modules
+del package-lock.json
+npm install
+npm run dev
+```
+
+**B. Stay on Node 26**  
+This repo pins a `yauzl` override that fixes Electron extraction. Make sure you have the latest project files, then:
+
+```bat
+rmdir /s /q node_modules
+del package-lock.json
+npm install
+npm run electron:download
+npm run dev
 ```
 
 ## Build (Windows installer)

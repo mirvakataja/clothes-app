@@ -8,6 +8,9 @@
   "engines": {
     "node": ">=20"
   },
+  "overrides": {
+    "yauzl": "3.3.1"
+  },
   "scripts": {
     "dev": "node scripts/ensure-electron.cjs && electron-vite dev",
     "build": "node scripts/ensure-electron.cjs && electron-vite build",
