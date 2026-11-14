@@ -81,12 +81,26 @@ function toPublicOutfit(outfit: Outfit): Outfit {
 export function getSettings(): AppSettings {
   return {
     removeBgApiKey: getSetting('removeBgApiKey') ?? '',
+    openaiApiKey: getSetting('openaiApiKey') ?? '',
     dataPath: dataRoot
   }
 }
 
 export function saveApiKey(apiKey: string): AppSettings {
   setSetting('removeBgApiKey', apiKey)
+  return getSettings()
+}
+
+export function saveSettings(partial: {
+  removeBgApiKey?: string
+  openaiApiKey?: string
+}): AppSettings {
+  if (partial.removeBgApiKey !== undefined) {
+    setSetting('removeBgApiKey', partial.removeBgApiKey)
+  }
+  if (partial.openaiApiKey !== undefined) {
+    setSetting('openaiApiKey', partial.openaiApiKey)
+  }
   return getSettings()
 }
 
@@ -105,6 +119,23 @@ export async function pickImageFile(
     : await dialog.showOpenDialog(options)
   if (result.canceled || !result.filePaths[0]) return null
   return result.filePaths[0]
+}
+
+export async function pickImageFiles(
+  win: BrowserWindow | null
+): Promise<string[]> {
+  const options = {
+    title: 'Choose clothing photos',
+    properties: ['openFile' as const, 'multiSelections' as const],
+    filters: [
+      { name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'webp', 'gif'] }
+    ]
+  }
+  const result = win
+    ? await dialog.showOpenDialog(win, options)
+    : await dialog.showOpenDialog(options)
+  if (result.canceled) return []
+  return result.filePaths
 }
 
 export async function pickSavePng(

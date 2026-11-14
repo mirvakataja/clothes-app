@@ -1,6 +1,7 @@
 import { app, BrowserWindow, ipcMain, protocol, net, shell } from 'electron'
 import { join } from 'path'
 import { pathToFileURL } from 'url'
+import { analyzeClothingImage } from './analyzeClothing'
 import {
   createItem,
   createOutfit,
@@ -13,10 +14,11 @@ import {
   getSettings,
   initStorage,
   pickImageFile,
+  pickImageFiles,
   pickSavePng,
   removeItem,
   removeOutfit,
-  saveApiKey,
+  saveSettings,
   writeExportedPng
 } from './storage'
 import type {
@@ -70,12 +72,24 @@ function createWindow(): void {
 
 function registerIpc(): void {
   ipcMain.handle('settings:get', () => getSettings())
-  ipcMain.handle('settings:setApiKey', (_e, apiKey: string) => saveApiKey(apiKey))
+  ipcMain.handle(
+    'settings:save',
+    (
+      _e,
+      partial: { removeBgApiKey?: string; openaiApiKey?: string }
+    ) => saveSettings(partial)
+  )
 
   ipcMain.handle('dialog:pickImage', () => pickImageFile(mainWindow))
+  ipcMain.handle('dialog:pickImages', () => pickImageFiles(mainWindow))
   ipcMain.handle('dialog:pickSavePng', (_e, defaultName: string) =>
     pickSavePng(mainWindow, defaultName)
   )
+
+  ipcMain.handle('ai:analyzeImage', async (_e, imagePath: string) => {
+    const settings = getSettings()
+    return analyzeClothingImage(settings.openaiApiKey, imagePath)
+  })
 
   ipcMain.handle('items:list', () => getAllItems())
   ipcMain.handle('items:get', (_e, id: string) => getOneItem(id))

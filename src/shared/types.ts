@@ -108,7 +108,32 @@ export interface OutfitUpdate extends OutfitInput {
 
 export interface AppSettings {
   removeBgApiKey: string
+  openaiApiKey: string
   dataPath: string
+}
+
+export interface ClothingAnalysis {
+  name: string
+  category: Category
+  colors: string[]
+  brand: string
+  notes: string
+  tags: string[]
+}
+
+export interface BulkDraftItem {
+  id: string
+  sourceImagePath: string
+  status: 'pending' | 'analyzing' | 'ready' | 'error' | 'saving' | 'saved'
+  error?: string
+  selected: boolean
+  removeBackground: boolean
+  name: string
+  category: Category
+  colors: string[]
+  brand: string
+  notes: string
+  tags: string[]
 }
 
 export interface ItemFilters {

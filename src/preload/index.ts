@@ -1,6 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import type {
   AppSettings,
+  ClothingAnalysis,
   ClothingItem,
   ClothingItemInput,
   ClothingItemUpdate,
@@ -15,12 +16,21 @@ export type ItemMutationResult =
 
 const api = {
   getSettings: (): Promise<AppSettings> => ipcRenderer.invoke('settings:get'),
+  saveSettings: (partial: {
+    removeBgApiKey?: string
+    openaiApiKey?: string
+  }): Promise<AppSettings> => ipcRenderer.invoke('settings:save', partial),
+  /** @deprecated use saveSettings */
   setApiKey: (apiKey: string): Promise<AppSettings> =>
-    ipcRenderer.invoke('settings:setApiKey', apiKey),
+    ipcRenderer.invoke('settings:save', { removeBgApiKey: apiKey }),
 
   pickImage: (): Promise<string | null> => ipcRenderer.invoke('dialog:pickImage'),
+  pickImages: (): Promise<string[]> => ipcRenderer.invoke('dialog:pickImages'),
   pickSavePng: (defaultName: string): Promise<string | null> =>
     ipcRenderer.invoke('dialog:pickSavePng', defaultName),
+
+  analyzeImage: (imagePath: string): Promise<ClothingAnalysis> =>
+    ipcRenderer.invoke('ai:analyzeImage', imagePath),
 
   listItems: (): Promise<ClothingItem[]> => ipcRenderer.invoke('items:list'),
   getItem: (id: string): Promise<ClothingItem | null> =>

@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { CATEGORIES, type Category, type ClothingItem } from '../../../shared/types'
 import { itemImagePath, mediaUrl } from '../lib/media'
 import { ItemFormModal } from './ItemFormModal'
+import { BulkUploadModal } from './BulkUploadModal'
 
 interface Props {
   items: ClothingItem[]
@@ -15,6 +16,7 @@ export function WardrobeView({ items, onChange, onToast }: Props): JSX.Element {
   const [color, setColor] = useState('')
   const [brand, setBrand] = useState('')
   const [editing, setEditing] = useState<ClothingItem | null | undefined>(undefined)
+  const [bulkOpen, setBulkOpen] = useState(false)
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -59,6 +61,9 @@ export function WardrobeView({ items, onChange, onToast }: Props): JSX.Element {
           <p>Catalogue pieces with cutouts, colors, brand, and notes.</p>
         </div>
         <div className="actions">
+          <button className="btn" onClick={() => setBulkOpen(true)}>
+            Bulk upload
+          </button>
           <button className="btn primary" onClick={() => setEditing(null)}>
             Add clothing
           </button>
@@ -161,6 +166,17 @@ export function WardrobeView({ items, onChange, onToast }: Props): JSX.Element {
             )
             setEditing(undefined)
             onToast(warning ? `Saved without cutout: ${warning}` : 'Item saved')
+          }}
+        />
+      )}
+
+      {bulkOpen && (
+        <BulkUploadModal
+          onClose={() => setBulkOpen(false)}
+          onToast={onToast}
+          onSaved={(created) => {
+            onChange([...created, ...items])
+            setBulkOpen(false)
           }}
         />
       )}

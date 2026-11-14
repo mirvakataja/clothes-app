@@ -5,6 +5,7 @@ Local Windows desktop app for cataloguing clothes (with in-app background remova
 ## Features
 
 - **Wardrobe** — add clothing photos, optional remove.bg cutouts, category / colors / brand / notes / tags
+- **Bulk upload** — multi-select photos; OpenAI vision suggests details; review and save
 - **Browse & filter** — search plus category, color, and brand filters
 - **Outfit canvas** — drag, resize, rotate, and layer pieces; save with occasion + vibe
 - **Export** — save the moodboard as a PNG
@@ -15,6 +16,7 @@ Local Windows desktop app for cataloguing clothes (with in-app background remova
 - **[Node.js 22 LTS](https://nodejs.org/)** on Windows (recommended). Node 26 can fail to unpack Electron.
 - Windows (primary target)
 - A [remove.bg](https://www.remove.bg/api) API key for background removal
+- An [OpenAI](https://platform.openai.com/api-keys) API key for bulk AI tagging (`gpt-4o-mini`)
 
 No Visual Studio / C++ build tools are required — the database uses SQL.js (WASM).
 
@@ -64,8 +66,8 @@ Installer output lands in `release/`.
 
 ## First run
 
-1. Open **Settings** and paste your remove.bg API key.
-2. Go to **Wardrobe → Add clothing**, choose a photo, and save.
+1. Open **Settings** and paste your remove.bg and OpenAI API keys.
+2. Go to **Wardrobe → Add clothing** for one item, or **Bulk upload** for many photos with AI-filled details.
 3. Open **Outfits → Plan outfit**, place pieces on the canvas, set occasion/vibe, and save or export.
 
 ## Stack
