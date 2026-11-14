@@ -13,8 +13,10 @@
     "build": "electron-vite build",
     "preview": "electron-vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
-    "dist:win": "npm run build && electron-builder --win"
+    "dist:win": "npm run build && electron-builder --win",
+    "electron:download": "node node_modules/electron/install.js"
   },
+
   "dependencies": {
     "konva": "^9.3.18",
     "react": "^18.3.1",

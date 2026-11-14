@@ -22,14 +22,26 @@ No Visual Studio / C++ build tools are required — the database uses SQL.js (WA
 
 From the project folder that contains `package.json`:
 
-```bash
+```bat
 npm install
+npm run electron:download
+npm run dev
+```
+
+`electron:download` fetches the Electron binary. Newer npm versions may skip that automatically; if `npm run dev` says **Electron uninstall**, run that command once and try again.
+
+If npm asks you to approve install scripts:
+
+```bat
+npm install-scripts approve electron
+npm install-scripts approve esbuild
+npm run electron:download
 npm run dev
 ```
 
 ## Build (Windows installer)
 
-```bash
+```bat
 npm run dist:win
 ```
 
