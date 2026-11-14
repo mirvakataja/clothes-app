@@ -5,26 +5,28 @@
   "main": "out/main/index.js",
   "author": "Atelier",
   "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "electron-vite dev",
     "build": "electron-vite build",
     "preview": "electron-vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
-    "dist:win": "npm run build && electron-builder --win",
-    "postinstall": "electron-builder install-app-deps"
+    "dist:win": "npm run build && electron-builder --win"
   },
   "dependencies": {
-    "better-sqlite3": "^11.8.1",
     "konva": "^9.3.18",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-konva": "^18.2.10",
+    "sql.js": "^1.12.0",
     "uuid": "^11.0.5"
   },
   "devDependencies": {
-    "@types/better-sqlite3": "^7.6.12",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
+    "@types/sql.js": "^1.4.9",
     "@types/uuid": "^10.0.0",
     "@vitejs/plugin-react": "^4.3.4",
     "electron": "^34.0.0",
@@ -40,7 +42,11 @@
       "output": "release"
     },
     "files": [
-      "out/**/*"
+      "out/**/*",
+      "node_modules/sql.js/dist/sql-wasm.wasm"
+    ],
+    "asarUnpack": [
+      "**/sql.js/dist/*.wasm"
     ],
     "win": {
       "target": [

@@ -132,8 +132,8 @@ function registerIpc(): void {
   ipcMain.handle('shell:openPath', (_e, path: string) => shell.openPath(path))
 }
 
-app.whenReady().then(() => {
-  initStorage()
+app.whenReady().then(async () => {
+  await initStorage()
 
   protocol.handle('atelier', (request) => {
     // atelier://media/<absolute-path-with-slashes>

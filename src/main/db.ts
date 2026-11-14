@@ -1,5 +1,6 @@
-import Database from 'better-sqlite3'
-import { existsSync, mkdirSync } from 'fs'
+import initSqlJs, { type Database, type SqlValue } from 'sql.js'
+import { createRequire } from 'module'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
 import { join } from 'path'
 import type {
   CanvasPlacement,
@@ -10,14 +11,71 @@ import type {
   Vibe
 } from '../shared/types'
 
-let db: Database.Database
+const require = createRequire(__filename)
 
-export function initDb(dataDir: string): void {
+let db: Database
+let dbPath = ''
+
+function persist(): void {
+  if (!db || !dbPath) return
+  const data = db.export()
+  writeFileSync(dbPath, Buffer.from(data))
+}
+
+function run(sql: string, params: SqlValue[] = []): void {
+  db.run(sql, params)
+  persist()
+}
+
+function getRow(
+  sql: string,
+  params: SqlValue[] = []
+): Record<string, unknown> | undefined {
+  const stmt = db.prepare(sql)
+  stmt.bind(params)
+  if (!stmt.step()) {
+    stmt.free()
+    return undefined
+  }
+  const row = stmt.getAsObject() as Record<string, unknown>
+  stmt.free()
+  return row
+}
+
+function allRows(
+  sql: string,
+  params: SqlValue[] = []
+): Record<string, unknown>[] {
+  const stmt = db.prepare(sql)
+  stmt.bind(params)
+  const rows: Record<string, unknown>[] = []
+  while (stmt.step()) {
+    rows.push(stmt.getAsObject() as Record<string, unknown>)
+  }
+  stmt.free()
+  return rows
+}
+
+export async function initDb(dataDir: string): Promise<void> {
   mkdirSync(dataDir, { recursive: true })
-  const dbPath = join(dataDir, 'atelier.db')
-  db = new Database(dbPath)
-  db.pragma('journal_mode = WAL')
-  db.exec(`
+  dbPath = join(dataDir, 'atelier.db')
+
+  const wasmPath = require.resolve('sql.js/dist/sql-wasm.wasm')
+  const wasmFile = readFileSync(wasmPath)
+  const SQL = await initSqlJs({
+    wasmBinary: wasmFile.buffer.slice(
+      wasmFile.byteOffset,
+      wasmFile.byteOffset + wasmFile.byteLength
+    ) as ArrayBuffer
+  })
+
+  if (existsSync(dbPath)) {
+    db = new SQL.Database(new Uint8Array(readFileSync(dbPath)))
+  } else {
+    db = new SQL.Database()
+  }
+
+  db.run(`
     CREATE TABLE IF NOT EXISTS settings (
       key TEXT PRIMARY KEY,
       value TEXT NOT NULL
@@ -49,6 +107,7 @@ export function initDb(dataDir: string): void {
       updated_at TEXT NOT NULL
     );
   `)
+  persist()
 }
 
 function parseJsonArray(value: string): string[] {
@@ -99,134 +158,129 @@ function rowToOutfit(row: Record<string, unknown>): Outfit {
 }
 
 export function getSetting(key: string): string | null {
-  const row = db.prepare('SELECT value FROM settings WHERE key = ?').get(key) as
-    | { value: string }
-    | undefined
-  return row?.value ?? null
+  const row = getRow('SELECT value FROM settings WHERE key = ?', [key])
+  return row?.value != null ? String(row.value) : null
 }
 
 export function setSetting(key: string, value: string): void {
-  db.prepare(
+  run(
     `INSERT INTO settings (key, value) VALUES (?, ?)
-     ON CONFLICT(key) DO UPDATE SET value = excluded.value`
-  ).run(key, value)
+     ON CONFLICT(key) DO UPDATE SET value = excluded.value`,
+    [key, value]
+  )
 }
 
 export function insertItem(item: ClothingItem): ClothingItem {
-  db.prepare(
+  run(
     `INSERT INTO items (
       id, name, category, colors, brand, notes, tags,
       original_path, cutout_path, created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-  ).run(
-    item.id,
-    item.name,
-    item.category,
-    JSON.stringify(item.colors),
-    item.brand,
-    item.notes,
-    JSON.stringify(item.tags),
-    item.originalPath,
-    item.cutoutPath,
-    item.createdAt,
-    item.updatedAt
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      item.id,
+      item.name,
+      item.category,
+      JSON.stringify(item.colors),
+      item.brand,
+      item.notes,
+      JSON.stringify(item.tags),
+      item.originalPath,
+      item.cutoutPath,
+      item.createdAt,
+      item.updatedAt
+    ]
   )
   return item
 }
 
 export function updateItem(item: ClothingItem): ClothingItem {
-  db.prepare(
+  run(
     `UPDATE items SET
       name = ?, category = ?, colors = ?, brand = ?, notes = ?, tags = ?,
       original_path = ?, cutout_path = ?, updated_at = ?
-     WHERE id = ?`
-  ).run(
-    item.name,
-    item.category,
-    JSON.stringify(item.colors),
-    item.brand,
-    item.notes,
-    JSON.stringify(item.tags),
-    item.originalPath,
-    item.cutoutPath,
-    item.updatedAt,
-    item.id
+     WHERE id = ?`,
+    [
+      item.name,
+      item.category,
+      JSON.stringify(item.colors),
+      item.brand,
+      item.notes,
+      JSON.stringify(item.tags),
+      item.originalPath,
+      item.cutoutPath,
+      item.updatedAt,
+      item.id
+    ]
   )
   return item
 }
 
 export function deleteItem(id: string): void {
-  db.prepare('DELETE FROM items WHERE id = ?').run(id)
+  run('DELETE FROM items WHERE id = ?', [id])
 }
 
 export function getItem(id: string): ClothingItem | null {
-  const row = db.prepare('SELECT * FROM items WHERE id = ?').get(id) as
-    | Record<string, unknown>
-    | undefined
+  const row = getRow('SELECT * FROM items WHERE id = ?', [id])
   return row ? rowToItem(row) : null
 }
 
 export function listItems(): ClothingItem[] {
-  const rows = db
-    .prepare('SELECT * FROM items ORDER BY updated_at DESC')
-    .all() as Record<string, unknown>[]
-  return rows.map(rowToItem)
+  return allRows('SELECT * FROM items ORDER BY updated_at DESC').map(rowToItem)
 }
 
 export function insertOutfit(outfit: Outfit): Outfit {
-  db.prepare(
+  run(
     `INSERT INTO outfits (
       id, name, occasion, vibe, notes, placements, thumbnail_path, created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
-  ).run(
-    outfit.id,
-    outfit.name,
-    outfit.occasion,
-    outfit.vibe,
-    outfit.notes,
-    JSON.stringify(outfit.placements),
-    outfit.thumbnailPath,
-    outfit.createdAt,
-    outfit.updatedAt
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      outfit.id,
+      outfit.name,
+      outfit.occasion,
+      outfit.vibe,
+      outfit.notes,
+      JSON.stringify(outfit.placements),
+      outfit.thumbnailPath,
+      outfit.createdAt,
+      outfit.updatedAt
+    ]
   )
   return outfit
 }
 
 export function updateOutfit(outfit: Outfit): Outfit {
-  db.prepare(
+  run(
     `UPDATE outfits SET
       name = ?, occasion = ?, vibe = ?, notes = ?, placements = ?,
       thumbnail_path = ?, updated_at = ?
-     WHERE id = ?`
-  ).run(
-    outfit.name,
-    outfit.occasion,
-    outfit.vibe,
-    outfit.notes,
-    JSON.stringify(outfit.placements),
-    outfit.thumbnailPath,
-    outfit.updatedAt,
-    outfit.id
+     WHERE id = ?`,
+    [
+      outfit.name,
+      outfit.occasion,
+      outfit.vibe,
+      outfit.notes,
+      JSON.stringify(outfit.placements),
+      outfit.thumbnailPath,
+      outfit.updatedAt,
+      outfit.id
+    ]
   )
   return outfit
 }
 
 export function deleteOutfit(id: string): void {
-  db.prepare('DELETE FROM outfits WHERE id = ?').run(id)
+  run('DELETE FROM outfits WHERE id = ?', [id])
 }
 
 export function getOutfit(id: string): Outfit | null {
-  const row = db.prepare('SELECT * FROM outfits WHERE id = ?').get(id) as
-    | Record<string, unknown>
-    | undefined
+  const row = getRow('SELECT * FROM outfits WHERE id = ?', [id])
   return row ? rowToOutfit(row) : null
 }
 
 export function listOutfits(): Outfit[] {
-  const rows = db
-    .prepare('SELECT * FROM outfits ORDER BY updated_at DESC')
-    .all() as Record<string, unknown>[]
-  return rows.map(rowToOutfit)
+  return allRows('SELECT * FROM outfits ORDER BY updated_at DESC').map(
+    rowToOutfit
+  )
 }
 
 export function ensureDir(path: string): void {

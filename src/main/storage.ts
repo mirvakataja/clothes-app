@@ -35,12 +35,12 @@ export function getDataRoot(): string {
   return dataRoot
 }
 
-export function initStorage(): string {
+export async function initStorage(): Promise<string> {
   dataRoot = join(app.getPath('userData'), 'atelier-data')
   mkdirSyncSafe(dataRoot)
   mkdirSyncSafe(join(dataRoot, 'images'))
   mkdirSyncSafe(join(dataRoot, 'thumbnails'))
-  initDb(dataRoot)
+  await initDb(dataRoot)
   return dataRoot
 }
 

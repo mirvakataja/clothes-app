@@ -12,11 +12,15 @@ Local Windows desktop app for cataloguing clothes (with in-app background remova
 
 ## Requirements
 
-- Node.js 20+
+- [Node.js 20 or 22 LTS](https://nodejs.org/) (avoid odd/bleeding-edge majors if possible)
 - Windows (primary target)
 - A [remove.bg](https://www.remove.bg/api) API key for background removal
 
+No Visual Studio / C++ build tools are required — the database uses SQL.js (WASM).
+
 ## Develop
+
+From the project folder that contains `package.json`:
 
 ```bash
 npm install
@@ -39,4 +43,4 @@ Installer output lands in `release/`.
 
 ## Stack
 
-Electron · React · TypeScript · SQLite (better-sqlite3) · Konva · remove.bg API
+Electron · React · TypeScript · SQLite (SQL.js) · Konva · remove.bg API
